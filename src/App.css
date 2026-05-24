@@ -1,7 +1,14 @@
-/* =============================================================
+/* ================================================================
+   App.css — Flipbook "Mandarina & Lavanda"
+   Versión corregida: contraste, responsive y paginación
+   ================================================================ */
+
+/* ────────────────────────────────────────────────────────────────
    RESET Y BASE
-   ============================================================= */
-*, *::before, *::after {
+   ──────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -10,214 +17,271 @@
 body {
   font-family: 'Georgia', 'Times New Roman', serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* =============================================================
-   CONTENEDOR PRINCIPAL
-   ============================================================= */
+/* ────────────────────────────────────────────────────────────────
+   FONDO DE PANTALLA
+   ──────────────────────────────────────────────────────────────── */
 .app-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(145deg, #fdf2f8 0%, #fff7ed 50%, #faf5ff 100%);
-  gap: 24px;
-  padding: 20px;
+  /* Gradiente suave que evoca el nombre "Mandarina & Lavanda" */
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(251, 146, 60, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.1)  0%, transparent 55%),
+    linear-gradient(160deg, #fdf2f8 0%, #fff7ed 50%, #faf5ff 100%);
+  gap: 28px;
+  padding: 24px 16px;
 }
 
-/* =============================================================
-   ┌─────────────────────────────────────────────────────────┐
-   │  ARQUITECTURA ANTI-FANTASMA — El corazón de la solución │
-   └─────────────────────────────────────────────────────────┘
+/* ================================================================
+   ┌──────────────────────────────────────────────────────────────┐
+   │  ARQUITECTURA DE DOS CAPAS ANTI-FANTASMA                     │
+   │                                                              │
+   │  PROBLEMA:                                                   │
+   │    react-pageflip rasteriza el elemento raíz en canvas       │
+   │    durante la animación. Si ese elemento no tiene fondo      │
+   │    sólido → página transparente (fantasma).                  │
+   │    Si tiene display:flex → la librería sobreescribe el       │
+   │    layout y todo se desarma.                                 │
+   │                                                              │
+   │  SOLUCIÓN:                                                   │
+   │    Capa 1 (.page)         → solo background + position       │
+   │    Capa 2 (.page-content) → position:absolute + flex layout  │
+   │                                                              │
+   │  El canvas captura el .page con fondo sólido garantizado.    │
+   │  El layout flex vive libre e intacto en .page-content.       │
+   └──────────────────────────────────────────────────────────────┘
+   ================================================================ */
 
-   PROBLEMA:  react-pageflip clona el elemento raíz al canvas durante
-              la animación. Si ese elemento no tiene fondo sólido → fantasma.
-              Si tiene flex → la librería sobreescribe el layout.
-
-   SOLUCIÓN:  Dos capas con responsabilidades separadas:
-
-   Capa 1 (.page):
-     - Solo: position:relative + overflow:hidden
-     - El background-color viene en inline style (prop bgColor)
-     - La librería hace lo suyo con dimensiones y z-index
-     - NUNCA display:flex aquí
-
-   Capa 2 (.page-content):
-     - position:absolute + inset:0 → se ancla al padre ocupando
-       el 100% sin participar en el flujo que la librería controla
-     - Aquí vive todo tu flex, padding, tipografía, imágenes
-     - El canvas del padre YA tiene el color sólido capturado
-   ============================================================= */
-
-/* CAPA 1 — Root capturado por el canvas */
+/* ── CAPA 1: root capturado por el canvas de react-pageflip ─── */
 .page {
-  position: relative;  /* Ancla el absolute del hijo */
-  overflow: hidden;    /* Recorta esquinas en animación */
-  /* background-color: set via inline style en el componente */
+  /* Ancla al hijo absoluto */
+  position: relative;
+
+  /* Recorte limpio de esquinas durante la animación */
+  overflow: hidden;
+
+  /*
+   * FIX CONTRASTE #1:
+   * background-color viene en inline style desde el componente (bgColor prop).
+   * NO se pone aquí porque cada página tiene un color diferente.
+   * NO se omite ni se pone "transparent" → eso causa el efecto fantasma.
+   */
 }
 
-/* CAPA 2 — Tu lienzo de diseño, invisible para la librería */
+/* ── CAPA 2: tu lienzo de diseño, invisible para la librería ── */
 .page-content {
-  /* CLAVE: absolute + inset libera el flex del flujo del padre */
+  /*
+   * CLAVE ARQUITECTÓNICA:
+   * position:absolute + inset:0 ocupa el 100% del padre sin participar
+   * en el flujo de layout que la librería controla.
+   * Así display:flex funciona perfectamente aquí adentro.
+   */
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top:    0;
+  left:   0;
+  right:  0;
   bottom: 0;
 
-  /* Ahora flex funciona perfectamente aquí */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  /* Layout flex libremente disponible aquí */
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
   justify-content: center;
 
   padding: 32px 28px;
-  width: 100%;
+  width:  100%;
   height: 100%;
   text-align: center;
 }
 
-/* =============================================================
-   PORTADA DELANTERA — Naranja
-   ============================================================= */
+/* ================================================================
+   FIX CONTRASTE #2 — Portadas con contenido siempre por encima
+   Las decoraciones circulares son z-index:0.
+   Todo el contenido tipográfico debe estar sobre ellas (z-index:1).
+   ================================================================ */
+.page--cover-front .page-content > *,
+.page--cover-back  .page-content > * {
+  position: relative;
+  z-index: 1;
+}
+
 .page--cover-front .page-content,
-.page--cover-back .page-content {
-  padding: 40px 32px;
+.page--cover-back  .page-content {
+  padding: 44px 36px;
 }
 
-/* Decoraciones circulares de fondo */
-.cover-decoration {
+/* ────────────────────────────────────────────────────────────────
+   DECORACIONES CIRCULARES DE FONDO (portadas)
+   ──────────────────────────────────────────────────────────────── */
+.cover-deco {
   position: absolute;
-  width: 200px;
-  height: 200px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.09);
   pointer-events: none;
+  z-index: 0;
 }
 
-.cover-decoration--top {
-  top: -60px;
-  right: -40px;
+.cover-deco--tr {
+  width:  220px;
+  height: 220px;
+  top:   -55px;
+  right: -45px;
 }
 
-.cover-decoration--bottom {
-  bottom: -70px;
-  left: -50px;
-  width: 240px;
-  height: 240px;
+.cover-deco--bl {
+  width:  270px;
+  height: 270px;
+  bottom: -75px;
+  left:  -55px;
 }
 
+/* ────────────────────────────────────────────────────────────────
+   PORTADA DELANTERA — Naranja #fb923c
+   ──────────────────────────────────────────────────────────────── */
 .cover-title {
-  color: white;
-  font-size: 2.2rem;
+  color: #ffffff;
+  font-size: clamp(1.7rem, 5.5vw, 2.4rem);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  margin-top: 14px;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.05em;
+  margin-top: 16px;
+  /*
+   * FIX CONTRASTE #3:
+   * text-shadow multicapa garantiza legibilidad sobre cualquier fondo
+   * naranja, sin importar el brillo de la pantalla del celular.
+   */
+  text-shadow:
+    0 1px 2px  rgba(0, 0, 0, 0.30),
+    0 3px 10px rgba(0, 0, 0, 0.18),
+    0 6px 24px rgba(0, 0, 0, 0.10);
 }
 
 .cover-divider {
-  width: 48px;
+  width:  52px;
   height: 2px;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.55);
   border-radius: 2px;
-  margin: 14px 0;
-}
-
-.cover-divider--white {
-  background: rgba(255, 255, 255, 0.5);
+  margin: 16px 0;
+  flex-shrink: 0;
 }
 
 .cover-subtitle {
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 1.05rem;
-  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: clamp(0.92rem, 3vw, 1.08rem);
   font-style: italic;
+  margin-bottom: 8px;
+  /* FIX CONTRASTE: sombra fina para bordes nítidos */
+  text-shadow:
+    0 1px 4px  rgba(0, 0, 0, 0.22),
+    0 2px 12px rgba(0, 0, 0, 0.12);
 }
 
 .cover-date {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(0.72rem, 2.4vw, 0.80rem);
+  letter-spacing: 0.07em;
   margin-top: 4px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
 }
 
-/* =============================================================
-   CONTRAPORTADA — Morada
-   ============================================================= */
+/* ────────────────────────────────────────────────────────────────
+   CONTRAPORTADA — Morado #a855f7
+   ──────────────────────────────────────────────────────────────── */
 .back-title {
-  color: white;
-  font-size: 1.7rem;
+  color: #ffffff;
+  font-size: clamp(1.35rem, 4.5vw, 1.80rem);
   font-weight: 700;
   line-height: 1.2;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  /*
+   * FIX CONTRASTE #4:
+   * El texto blanco sobre #a855f7 tiene buen ratio, pero en pantallas
+   * OLED (celulares modernos) el morado puede parecer oscuro.
+   * La sombra add claridad sin cambiar el color.
+   */
+  text-shadow:
+    0 1px 2px  rgba(0, 0, 0, 0.28),
+    0 3px 10px rgba(0, 0, 0, 0.16),
+    0 6px 24px rgba(0, 0, 0, 0.08);
 }
 
-/* Solo el primer .back-title tiene margen superior */
-.back-title:first-of-type {
-  margin-top: 14px;
+.back-title + .back-title {
+  margin-top: 2px;
 }
 
 .back-subtitle {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.90);
+  font-size: clamp(0.86rem, 2.6vw, 0.94rem);
   font-style: italic;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.20);
 }
 
 .back-date {
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 0.78rem;
-  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: clamp(0.72rem, 2.4vw, 0.80rem);
+  letter-spacing: 0.06em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
 }
 
-/* =============================================================
+/* ────────────────────────────────────────────────────────────────
    PÁGINAS INTERNAS — Foto a sangre completa
-   ============================================================= */
-
+   ──────────────────────────────────────────────────────────────── */
 /*
-   Para imágenes a sangre, el img también necesita ser absoluto.
-   .page-content es el nuevo "contexto" de posicionamiento.
-*/
-.page-image-bleed {
+ * La imagen también usa position:absolute para llenar el .page-content.
+ * .page-content ya es el "bloque de anclaje" (position:absolute).
+ * El img hereda ese espacio completamente.
+ */
+.page-img-bleed {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+  top:    0;
+  left:   0;
+  width:  100%;
   height: 100%;
-  object-fit: cover;
+  object-fit:      cover;
   object-position: center;
   display: block;
 }
 
-/* Caption flotante sobre la foto */
+/* Caption flotante con gradiente, siempre visible sobre la foto */
 .page-caption {
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px 20px;
-  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%);
-  z-index: 1; /* Por encima de la imagen */
+  left:   0;
+  right:  0;
+  padding: 18px 20px 14px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.62) 0%,
+    rgba(0, 0, 0, 0.20) 60%,
+    transparent         100%
+  );
+  z-index: 2;
 }
 
 .page-caption p {
-  color: white;
-  font-size: 0.85rem;
+  color: #ffffff;
+  font-size: clamp(0.78rem, 2.4vw, 0.87rem);
   font-style: italic;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
   text-align: center;
+  /* Sombra extra para fotos muy claras */
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.30);
 }
 
-/* =============================================================
-   PÁGINAS INTERNAS — Texto
-   ============================================================= */
+/* ────────────────────────────────────────────────────────────────
+   PÁGINAS INTERNAS — Solo texto
+   ──────────────────────────────────────────────────────────────── */
 .inner-title {
-  font-size: 1.3rem;
+  font-size: clamp(1.08rem, 3.5vw, 1.32rem);
   font-weight: 700;
-  color: #374151;
-  margin: 14px 0 12px;
+  color: #2d2d2d;
+  margin: 16px 0 12px;
   line-height: 1.3;
 }
 
@@ -226,76 +290,147 @@ body {
 }
 
 .inner-body {
-  font-size: 0.92rem;
-  color: #6b7280;
-  line-height: 1.7;
-  max-width: 260px;
+  font-size: clamp(0.86rem, 2.5vw, 0.94rem);
+  color: #5a5a6a;
+  line-height: 1.75;
+  max-width: 270px;
 }
 
-/* =============================================================
-   CONTROLES DE NAVEGACIÓN
-   ============================================================= */
-.nav-controls {
-  display: flex;
+/* ================================================================
+   BARRA DE NAVEGACIÓN
+   ──────────────────────────────────────────────────────────────────
+   FIX PAGINACIÓN:
+   Se eliminan los <dots> estáticos que saltaban de 2 en 2 en landscape.
+   En su lugar, un <span.nav-label> muestra texto calculado dinámicamente:
+     • Móvil (portrait):   "Página 2 de 4"
+     • PC (landscape):     "Páginas 2–3 de 4"
+     • Portada:            "📖 Portada"
+     • Contraportada:      "💜 Contraportada"
+   La lógica vive en App.jsx → función pageLabel.
+   ================================================================ */
+.nav-bar {
+  display:     flex;
   align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 10px 20px;
+  gap: 14px;
+
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  padding: 10px 22px;
   border-radius: 50px;
+
   box-shadow:
-    0 4px 20px rgba(168, 85, 247, 0.12),
-    0 1px 4px rgba(0, 0, 0, 0.06);
+    0  4px 20px rgba(168, 85, 247, 0.14),
+    0  1px  4px rgba(0,   0,   0,  0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .nav-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #a855f7;
-  display: flex;
-  align-items: center;
+  background:   none;
+  border:       none;
+  cursor:       pointer;
+  color:        #a855f7;
+  display:      flex;
+  align-items:  center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width:  38px;
+  height: 38px;
   border-radius: 50%;
-  transition: background-color 0.2s, color 0.2s;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
   flex-shrink: 0;
+  /* Área táctil generosa en móvil */
+  touch-action: manipulation;
 }
 
 .nav-btn:hover:not(:disabled) {
-  background-color: rgba(168, 85, 247, 0.1);
+  background-color: rgba(168, 85, 247, 0.12);
+  transform: scale(1.08);
+}
+
+.nav-btn:active:not(:disabled) {
+  transform: scale(0.94);
 }
 
 .nav-btn:disabled {
-  color: #d1d5db;
+  color:  #d1d5db;
   cursor: not-allowed;
+  transform: none;
 }
 
-/* Indicadores de puntos */
-.nav-dots {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/*
+ * Etiqueta de paginación elegante
+ * min-width fijo evita que la barra cambie de tamaño al cambiar el texto
+ */
+.nav-label {
+  font-family: 'Georgia', serif;
+  font-size:   0.82rem;
+  color:       #6b7280;
+  min-width:   148px;
+  text-align:  center;
+  font-style:  italic;
+  letter-spacing: 0.025em;
+  user-select: none;
+  /* Transición suave al cambiar el texto */
+  transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
-.nav-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  background: #e5e7eb;
-  padding: 0;
-  transition: background-color 0.25s, transform 0.25s;
+/* ────────────────────────────────────────────────────────────────
+   RESPONSIVE — Media queries
+   ──────────────────────────────────────────────────────────────── */
+
+/* ── Móvil pequeño (< 400 px) ─── */
+@media (max-width: 399px) {
+  .app-container {
+    padding: 12px 8px;
+    gap: 16px;
+  }
+
+  .nav-bar {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+
+  .nav-label {
+    min-width: 112px;
+    font-size: 0.76rem;
+  }
+
+  .nav-btn {
+    width:  34px;
+    height: 34px;
+  }
 }
 
-.nav-dot--active {
-  background: #a855f7;
-  transform: scale(1.3);
+/* ── Móvil estándar (400 px – 767 px) ─── */
+@media (min-width: 400px) and (max-width: 767px) {
+  .app-container {
+    padding: 16px 12px;
+    gap: 20px;
+  }
+
+  .nav-label {
+    min-width: 130px;
+  }
 }
 
-.nav-dot:hover:not(.nav-dot--active) {
-  background: #c4b5fd;
+/* ── Tablet / PC mediano (768 px – 1199 px) ─── */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .app-container {
+    gap: 28px;
+  }
+}
+
+/* ── PC grande (≥ 1200 px) ─── */
+@media (min-width: 1200px) {
+  .nav-label {
+    min-width: 168px;
+    font-size: 0.88rem;
+  }
+
+  .nav-bar {
+    padding: 12px 28px;
+    gap: 18px;
+  }
 }
