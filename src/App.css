@@ -1,22 +1,12 @@
-/* App.css - Sombras y colores corregidos */
+/* App.css */
 
-.miranda-book {
-  margin: 0 auto;
-  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2); 
-}
-
-/* 1. LA REGLA DE ORO: La página no debe ser transparente */
 .page {
+  /* Fondo blanco por defecto OBLIGATORIO para que el canvas no sea transparente */
+  background-color: white; 
   overflow: hidden;
-  border: solid 1px rgba(0,0,0,0.05); /* Borde sutil de hoja real */
 }
 
-/* 2. LOS COLORES VAN DIRECTAMENTE EN LA CAPA EXTERNA */
-.page.bg-mandarina { background-color: #fb923c; color: white; }
-.page.bg-lavanda { background-color: #a855f7; color: white; }
-.page.bg-papel { background-color: #fffafb; color: #333; }
-
-/* 3. SOMBRAS DEL LOMO (Copiadas del StPageFlip original) */
+/* Sombras realistas del centro del libro */
 .page.--left {
   border-right: 0;
   box-shadow: inset -7px 0 30px -7px rgba(0, 0, 0, 0.4) !important;
@@ -27,14 +17,11 @@
   box-shadow: inset 7px 0 30px -7px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* 4. TAPAS DURAS (Covers) */
-.page.page-cover {
-  border: solid 1px rgba(0,0,0,0.2);
-}
-
+/* El contenido interno de la página */
 .page-content {
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
