@@ -1,19 +1,37 @@
-/* App.css - Estilos realistas para el Flipbook */
+/* App.css - Sombras y colores corregidos */
 
 .miranda-book {
   margin: 0 auto;
-  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2); /* Sombra general del libro cerrado */
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2); 
 }
 
-/* Base para todas las páginas */
+/* 1. LA REGLA DE ORO: La página no debe ser transparente */
 .page {
-  background-color: white; 
   overflow: hidden;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  border: solid 1px rgba(0,0,0,0.05); /* Borde sutil de hoja real */
 }
 
-/* Contenedor interno */
+/* 2. LOS COLORES VAN DIRECTAMENTE EN LA CAPA EXTERNA */
+.page.bg-mandarina { background-color: #fb923c; color: white; }
+.page.bg-lavanda { background-color: #a855f7; color: white; }
+.page.bg-papel { background-color: #fffafb; color: #333; }
+
+/* 3. SOMBRAS DEL LOMO (Copiadas del StPageFlip original) */
+.page.--left {
+  border-right: 0;
+  box-shadow: inset -7px 0 30px -7px rgba(0, 0, 0, 0.4) !important;
+}
+
+.page.--right {
+  border-left: 0;
+  box-shadow: inset 7px 0 30px -7px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 4. TAPAS DURAS (Covers) */
+.page.page-cover {
+  border: solid 1px rgba(0,0,0,0.2);
+}
+
 .page-content {
   width: 100%;
   height: 100%;
@@ -22,43 +40,4 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  /* El color de fondo se define abajo para no perderse al girar */
-}
-
-/* ---------------------------------------------------- */
-/* EFECTOS DE SOMBRA REALISTA (Inspirado en StPageFlip) */
-/* ---------------------------------------------------- */
-
-/* La librería agrega la clase .--left a las páginas izquierdas */
-.page.--left .page-content {
-  box-shadow: inset -7px 0 30px -7px rgba(0, 0, 0, 0.15); 
-}
-
-/* La librería agrega la clase .--right a las páginas derechas */
-.page.--right .page-content {
-  box-shadow: inset 7px 0 30px -7px rgba(0, 0, 0, 0.15);
-}
-
-/* ---------------------------------------------------- */
-/* COLORES Y MATERIALES */
-/* ---------------------------------------------------- */
-
-/* Portada y Contraportada (Simulando tapa dura) */
-.page.page-cover .bg-mandarina { 
-  background-color: #fb923c; 
-  color: white; 
-  /* Sombra más fuerte para la tapa */
-  box-shadow: inset 0px 0 30px 0px rgba(0, 0, 0, 0.1), -2px 0 5px 2px rgba(0, 0, 0, 0.1) !important;
-}
-
-.page.page-cover .bg-lavanda { 
-  background-color: #a855f7; 
-  color: white; 
-  /* Sombra más fuerte para la contraportada */
-  box-shadow: inset 0px 0 30px 0px rgba(0, 0, 0, 0.1), 2px 0 5px 2px rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Páginas internas de papel */
-.bg-papel { 
-  background-color: #fffafb; 
 }

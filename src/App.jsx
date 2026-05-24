@@ -6,9 +6,9 @@ import './App.css';
 
 const Page = React.forwardRef((props, ref) => {
   return (
-    // Agregamos clases dinámicas para que soporte portadas duras
-    <div className={`page ${props.isCover ? 'page-cover' : ''}`} ref={ref}>
-      <div className={`page-content ${props.bgClass}`} style={props.style}>
+    // LA SOLUCIÓN: El color (bgClass) ahora está en la capa principal junto con el ref
+    <div className={`page ${props.isCover ? 'page-cover' : ''} ${props.bgClass}`} ref={ref}>
+      <div className="page-content" style={props.style}>
         {props.children}
       </div>
     </div>
@@ -52,13 +52,13 @@ function App() {
         <div style={{ borderRadius: '16px', padding: '12px', background: 'rgba(255, 255, 255, 0.3)' }}>
           <HTMLFlipBook 
             width={350} height={480} 
-            showCover={true} // Obligatorio para evitar fallos con la portada
+            showCover={true}
             className="miranda-book"
             ref={bookRef}
-            maxShadowOpacity={0.3} // Suaviza las sombras internas por defecto
+            maxShadowOpacity={0.5} /* Restaurado para mejor efecto de sombra */
           >
             
-            {/* PORTADA (Nota el isCover={true}) */}
+            {/* PORTADA */}
             <Page isCover={true} bgClass="bg-mandarina" style={{ padding: '30px' }}>
               <div style={{ border: '2px solid rgba(255,255,255,0.7)', padding: '50px 20px', borderRadius: '15px', width: '90%', position: 'relative' }}>
                 <Heart size={32} color="#f97316" fill="#f97316" style={{ position: 'absolute', top: '-15px', left: '-15px' }} />
@@ -80,7 +80,7 @@ function App() {
               </Page>
             ))}
 
-            {/* CONTRAPORTADA (Nota el isCover={true}) */}
+            {/* CONTRAPORTADA */}
             <Page isCover={true} bgClass="bg-lavanda" style={{ padding: '20px' }}>
               <div style={{ fontSize: '4rem', animation: 'pulse 2s infinite' }}>💜</div>
               <h2 style={{ fontSize: '2rem', fontFamily: 'serif', margin: '20px 0' }}>¡Te quiero muchísimo!</h2>
