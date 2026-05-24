@@ -1,9 +1,11 @@
-/* App.css - Estilos exclusivos para el Flipbook de Miranda */
+/* App.css - Estilos realistas para el Flipbook */
+
 .miranda-book {
   margin: 0 auto;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2); /* Sombra general del libro cerrado */
 }
 
-/* Regla estricta para evitar páginas translúcidas al girar */
+/* Base para todas las páginas */
 .page {
   background-color: white; 
   overflow: hidden;
@@ -11,7 +13,7 @@
   backface-visibility: hidden;
 }
 
-/* Contenedor interno para asegurar que el color y texto no se borren */
+/* Contenedor interno */
 .page-content {
   width: 100%;
   height: 100%;
@@ -20,9 +22,43 @@
   justify-content: center;
   align-items: center;
   text-align: center;
+  /* El color de fondo se define abajo para no perderse al girar */
 }
 
-/* Colores de fondo forzados */
-.bg-mandarina { background-color: #fb923c; color: white; }
-.bg-lavanda { background-color: #a855f7; color: white; }
-.bg-papel { background-color: #fffafb; }
+/* ---------------------------------------------------- */
+/* EFECTOS DE SOMBRA REALISTA (Inspirado en StPageFlip) */
+/* ---------------------------------------------------- */
+
+/* La librería agrega la clase .--left a las páginas izquierdas */
+.page.--left .page-content {
+  box-shadow: inset -7px 0 30px -7px rgba(0, 0, 0, 0.15); 
+}
+
+/* La librería agrega la clase .--right a las páginas derechas */
+.page.--right .page-content {
+  box-shadow: inset 7px 0 30px -7px rgba(0, 0, 0, 0.15);
+}
+
+/* ---------------------------------------------------- */
+/* COLORES Y MATERIALES */
+/* ---------------------------------------------------- */
+
+/* Portada y Contraportada (Simulando tapa dura) */
+.page.page-cover .bg-mandarina { 
+  background-color: #fb923c; 
+  color: white; 
+  /* Sombra más fuerte para la tapa */
+  box-shadow: inset 0px 0 30px 0px rgba(0, 0, 0, 0.1), -2px 0 5px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.page.page-cover .bg-lavanda { 
+  background-color: #a855f7; 
+  color: white; 
+  /* Sombra más fuerte para la contraportada */
+  box-shadow: inset 0px 0 30px 0px rgba(0, 0, 0, 0.1), 2px 0 5px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Páginas internas de papel */
+.bg-papel { 
+  background-color: #fffafb; 
+}
