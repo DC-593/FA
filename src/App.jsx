@@ -1,11 +1,28 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import confetti from 'canvas-confetti';
-// 1. IMPORTA EL ICONO DE CORAZÓN DE LUCIDE-REACT
-import { Heart } from 'lucide-react'; 
+import { Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import './App.css';
 
+// ==========================================
+// 1. COMPONENTE DE PÁGINA AVANZADO (forwardRef)
+// ==========================================
+const Page = React.forwardRef((props, ref) => {
+  return (
+    <div className="page" ref={ref}>
+      <div className={`page-content ${props.bgClass}`} style={props.style}>
+        {props.children}
+      </div>
+    </div>
+  );
+});
+
+// ==========================================
+// 2. COMPONENTE PRINCIPAL
+// ==========================================
 function App() {
+  const bookRef = useRef(); // Referencia para controlar el libro con botones
+  
   const fotos = [
     'frames/foto1.jpg', 
     'frames/foto2.jpg',
@@ -21,6 +38,15 @@ function App() {
     });
   };
 
+  // Métodos extraídos de la documentación para controlar el libro
+  const nextButtonClick = () => {
+    bookRef.current.pageFlip().flipNext();
+  };
+
+  const prevButtonClick = () => {
+    bookRef.current.pageFlip().flipPrev();
+  };
+
   return (
     <div style={{ 
       display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh',
@@ -28,105 +54,87 @@ function App() {
       padding: '20px', fontFamily: 'sans-serif'
     }}>
       
-      {/* Encabezado Superior */}
-      <div style={{ textAlign: 'center', marginBottom: '30px', color: '#a855f7' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'normal', letterSpacing: '2px' }}>UN MES DE NOSOTROS</h2>
-        <h1 style={{ margin: '5px 0 0 0', fontSize: '2.8rem', color: '#fb923c', fontFamily: 'serif' }}>Historia de Amor ✨</h1>
+      {/* Encabezado */}
+      <div style={{ textAlign: 'center', marginBottom: '20px', color: '#a855f7' }}>
+        <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'normal', letterSpacing: '2px' }}>UN MES DE NOSOTROS</h2>
+        <h1 style={{ margin: '5px 0 0 0', fontSize: '2.5rem', color: '#fb923c', fontFamily: 'serif' }}>Historia de Amor ✨</h1>
       </div>
 
-      {/* Contenedor del Libro con borde mejorado */}
-      <div style={{ 
-        boxShadow: '0 25px 50px -12px rgba(168, 85, 247, 0.25)', 
-        borderRadius: '16px', padding: '12px', background: 'rgba(255, 255, 255, 0.5)' 
-      }}>
-        <HTMLFlipBook width={350} height={480} showCover={true} className="miranda-book">
-          
-          {/* ------------------------------------------------------------ */}
-          {/* PÁGINA 1: PORTADA MEJORADA CON ICONOS DE REACT */}
-          {/* ------------------------------------------------------------ */}
-          <div className="page">
-            <div className="page-content bg-mandarina" style={{ padding: '30px', boxShadow: 'inset -5px 0 20px rgba(0,0,0,0.1)' }}>
-              {/* Borde decorativo interno */}
+      {/* Controles y Libro */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        
+        {/* Botón Anterior */}
+        <button onClick={prevButtonClick} style={btnStyle}>
+          <ChevronLeft size={24} />
+        </button>
+
+        {/* Contenedor del Libro */}
+        <div style={{ boxShadow: '0 25px 50px -12px rgba(168, 85, 247, 0.25)', borderRadius: '16px', padding: '12px', background: 'rgba(255, 255, 255, 0.5)' }}>
+          <HTMLFlipBook 
+            width={350} 
+            height={480} 
+            showCover={true} 
+            className="miranda-book"
+            ref={bookRef} // Aquí conectamos la referencia
+          >
+            
+            {/* PORTADA */}
+            <Page bgClass="bg-mandarina" style={{ padding: '30px', boxShadow: 'inset -5px 0 20px rgba(0,0,0,0.1)' }}>
               <div style={{ border: '2px solid rgba(255,255,255,0.7)', padding: '50px 20px', borderRadius: '15px', width: '90%', position: 'relative' }}>
-                
-                {/* ICONOS DE CORAZÓN DE REACT DECORATIVOS EN LAS ESQUINAS */}
-                {/* Corazón arriba a la izquierda */}
                 <Heart size={32} color="#f97316" fill="#f97316" style={{ position: 'absolute', top: '-15px', left: '-15px' }} />
-                {/* Corazón abajo a la derecha */}
                 <Heart size={32} color="#f97316" fill="#f97316" style={{ position: 'absolute', bottom: '-15px', right: '-15px' }} />
-
                 <h1 style={{ fontSize: '3.2rem', marginBottom: '5px', fontFamily: 'serif', color: 'white' }}>Mandarina</h1>
-                
                 <div style={{ borderTop: '2px solid rgba(255,255,255,0.3)', margin: '15px 0' }}></div>
-                
-                {/* EMOJI ORIGINAL */}
                 <div style={{ fontSize: '5rem', margin: '15px 0' }}>🍊</div>
-                
-                <p style={{ fontSize: '1.4rem', letterSpacing: '1px', color: 'white', fontWeight: 'bold' }}>
-                   Para Miranda
-                </p>
-                
-                {/* ICONO DE CORAZÓN MÁS PEQUEÑO JUNTO AL TEXTO FINAL */}
+                <p style={{ fontSize: '1.4rem', letterSpacing: '1px', color: 'white', fontWeight: 'bold' }}>Para Miranda</p>
                 <Heart size={20} color="#f97316" fill="#f97316" style={{ display: 'inline', marginLeft: '5px' }} />
-
               </div>
-            </div>
-          </div>
+            </Page>
 
-          {/* PÁGINAS DE FOTOS INTERNAS (SIN CAMBIOS) */}
-          {fotos.map((ruta, index) => (
-            <div key={index} className="page">
-              <div className="page-content bg-papel" style={{ 
-                padding: '15px',
-                boxShadow: index % 2 === 0 ? 'inset -5px 0 20px rgba(0,0,0,0.05)' : 'inset 5px 0 20px rgba(0,0,0,0.05)' 
-              }}>
-                <div style={{ 
-                  width: '100%', height: '100%', border: '1px solid #fbcfe8', 
-                  borderRadius: '8px', overflow: 'hidden', backgroundColor: '#fff',
-                  display: 'flex', justifyContent: 'center', alignItems: 'center'
-                }}>
-                  <img 
-                    src={ruta} 
-                    alt={`Recuerdo ${index + 1}`} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => { e.target.src = 'https://placehold.co/350x480/fdf2f8/ec4899?text=Tu+Foto+Aqui'; }}
-                  />
+            {/* PÁGINAS INTERNAS (FOTOS) */}
+            {fotos.map((ruta, index) => (
+              <Page key={index} bgClass="bg-papel" style={{ padding: '15px', boxShadow: index % 2 === 0 ? 'inset -5px 0 20px rgba(0,0,0,0.05)' : 'inset 5px 0 20px rgba(0,0,0,0.05)' }}>
+                <div style={{ width: '100%', height: '100%', border: '1px solid #fbcfe8', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <img src={ruta} alt={`Recuerdo ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = 'https://placehold.co/350x480/fdf2f8/ec4899?text=Tu+Foto+Aqui'; }} />
                 </div>
-              </div>
-            </div>
-          ))}
+              </Page>
+            ))}
 
-          {/* ÚLTIMA PÁGINA (SIN CAMBIOS) */}
-          <div className="page">
-            <div className="page-content bg-lavanda" style={{ padding: '20px', boxShadow: 'inset 5px 0 20px rgba(0,0,0,0.1)' }}>
+            {/* CONTRAPORTADA */}
+            <Page bgClass="bg-lavanda" style={{ padding: '20px', boxShadow: 'inset 5px 0 20px rgba(0,0,0,0.1)' }}>
               <div style={{ fontSize: '4rem', animation: 'pulse 2s infinite' }}>💜</div>
               <h2 style={{ fontSize: '2rem', fontFamily: 'serif', margin: '20px 0' }}>¡Te quiero muchísimo!</h2>
               <p style={{ marginBottom: '30px', fontSize: '1.1rem', opacity: 0.9 }}>Feliz primer mes, hermosa.</p>
-              
-              <button 
-                onClick={lanzarConfeti}
-                style={{
-                  padding: '12px 25px', fontSize: '1.1rem', backgroundColor: '#fb923c', color: 'white',
-                  border: 'none', borderRadius: '30px', cursor: 'pointer', fontWeight: 'bold',
-                  boxShadow: '0 4px 15px rgba(251, 146, 60, 0.4)', transition: 'transform 0.2s'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >
+              <button onClick={lanzarConfeti} style={confetiBtnStyle} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
                 Toca aquí ✨
               </button>
-            </div>
-          </div>
+            </Page>
 
-        </HTMLFlipBook>
+          </HTMLFlipBook>
+        </div>
+
+        {/* Botón Siguiente */}
+        <button onClick={nextButtonClick} style={btnStyle}>
+          <ChevronRight size={24} />
+        </button>
+
       </div>
-
-      <div style={{ marginTop: '30px', color: '#9333ea', fontSize: '0.9rem', opacity: 0.7 }}>
-        Desliza para abrir el libro
-      </div>
-
     </div>
   );
 }
+
+// Estilos para los botones laterales
+const btnStyle = {
+  backgroundColor: 'rgba(255, 255, 255, 0.7)', border: 'none', borderRadius: '50%',
+  width: '50px', height: '50px', display: 'flex', justifyContent: 'center', alignItems: 'center',
+  cursor: 'pointer', color: '#a855f7', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', transition: 'all 0.2s'
+};
+
+// Estilos para el botón de confeti
+const confetiBtnStyle = {
+  padding: '12px 25px', fontSize: '1.1rem', backgroundColor: '#fb923c', color: 'white',
+  border: 'none', borderRadius: '30px', cursor: 'pointer', fontWeight: 'bold',
+  boxShadow: '0 4px 15px rgba(251, 146, 60, 0.4)', transition: 'transform 0.2s'
+};
 
 export default App;
