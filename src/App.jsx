@@ -1,22 +1,21 @@
 import React from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import confetti from 'canvas-confetti';
+import './App.css'; // IMPORTANTE: Importamos los estilos estrictos
 
 function App() {
-  // Nombres de tus fotos reales en public/frames/
   const fotos = [
     'frames/foto1.jpg', 
     'frames/foto2.jpg',
     'frames/foto3.jpg'
   ];
 
-  // Función para lanzar el confeti personalizado
   const lanzarConfeti = () => {
     confetti({
       particleCount: 150,
       spread: 90,
       origin: { y: 0.6 },
-      colors: ['#fb923c', '#a855f7', '#f472b6', '#ffffff'] // Naranja, Morado, Rosa y Blanco
+      colors: ['#fb923c', '#a855f7', '#f472b6', '#ffffff']
     });
   };
 
@@ -41,46 +40,42 @@ function App() {
         <HTMLFlipBook width={350} height={480} showCover={true} className="miranda-book">
           
           {/* PÁGINA 1: PORTADA */}
-          <div className="page" style={{ 
-            backgroundColor: '#fb923c', color: 'white', display: 'flex', flexDirection: 'column', 
-            justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '30px',
-            boxShadow: 'inset -5px 0 20px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ border: '2px solid rgba(255,255,255,0.5)', padding: '40px 20px', borderRadius: '10px' }}>
-              <h1 style={{ fontSize: '2.5rem', marginBottom: '10px', fontFamily: 'serif' }}>Mandarina</h1>
-              <div style={{ fontSize: '4rem', margin: '20px 0' }}>🍊</div>
-              <p style={{ fontSize: '1.2rem', letterSpacing: '1px' }}>Para Miranda ❤️</p>
+          <div className="page">
+            <div className="page-content bg-mandarina" style={{ padding: '30px', boxShadow: 'inset -5px 0 20px rgba(0,0,0,0.1)' }}>
+              <div style={{ border: '2px solid rgba(255,255,255,0.5)', padding: '40px 20px', borderRadius: '10px', width: '80%' }}>
+                <h1 style={{ fontSize: '2.5rem', marginBottom: '10px', fontFamily: 'serif' }}>Mandarina</h1>
+                <div style={{ fontSize: '4rem', margin: '20px 0' }}>🍊</div>
+                <p style={{ fontSize: '1.2rem', letterSpacing: '1px' }}>Para Miranda ❤️</p>
+              </div>
             </div>
           </div>
 
           {/* PÁGINAS DE FOTOS INTERNAS */}
           {fotos.map((ruta, index) => (
-            <div key={index} className="page" style={{ 
-              backgroundColor: '#fffafb', padding: '15px',
-              boxShadow: index % 2 === 0 ? 'inset -5px 0 20px rgba(0,0,0,0.05)' : 'inset 5px 0 20px rgba(0,0,0,0.05)' 
-            }}>
-              <div style={{ 
-                width: '100%', height: '100%', border: '1px solid #fbcfe8', 
-                borderRadius: '8px', overflow: 'hidden', backgroundColor: '#fff',
-                display: 'flex', justifyContent: 'center', alignItems: 'center'
+            <div key={index} className="page">
+              <div className="page-content bg-papel" style={{ 
+                padding: '15px',
+                boxShadow: index % 2 === 0 ? 'inset -5px 0 20px rgba(0,0,0,0.05)' : 'inset 5px 0 20px rgba(0,0,0,0.05)' 
               }}>
-                <img 
-                  src={ruta} 
-                  alt={`Recuerdo ${index + 1}`} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => { e.target.src = 'https://placehold.co/350x480/fdf2f8/ec4899?text=Tu+Foto+Aqui'; }}
-                />
+                <div style={{ 
+                  width: '100%', height: '100%', border: '1px solid #fbcfe8', 
+                  borderRadius: '8px', overflow: 'hidden', backgroundColor: '#fff',
+                  display: 'flex', justifyContent: 'center', alignItems: 'center'
+                }}>
+                  <img 
+                    src={ruta} 
+                    alt={`Recuerdo ${index + 1}`} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { e.target.src = 'https://placehold.co/350x480/fdf2f8/ec4899?text=Tu+Foto+Aqui'; }}
+                  />
+                </div>
               </div>
             </div>
           ))}
 
           {/* ÚLTIMA PÁGINA: CONTRAPORTADA INTERACTIVA */}
-          <div className="page" style={{ 
-            backgroundColor: '#a855f7', color: 'white', display: 'flex', flexDirection: 'column',
-            justifyContent: 'center', alignItems: 'center', textAlign: 'center',
-            boxShadow: 'inset 5px 0 20px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ padding: '20px' }}>
+          <div className="page">
+            <div className="page-content bg-lavanda" style={{ padding: '20px', boxShadow: 'inset 5px 0 20px rgba(0,0,0,0.1)' }}>
               <div style={{ fontSize: '4rem', animation: 'pulse 2s infinite' }}>💜</div>
               <h2 style={{ fontSize: '2rem', fontFamily: 'serif', margin: '20px 0' }}>¡Te quiero muchísimo!</h2>
               <p style={{ marginBottom: '30px', fontSize: '1.1rem', opacity: 0.9 }}>Feliz primer mes, hermosa.</p>
@@ -103,9 +98,8 @@ function App() {
         </HTMLFlipBook>
       </div>
 
-      {/* Pie de página */}
       <div style={{ marginTop: '30px', color: '#9333ea', fontSize: '0.9rem', opacity: 0.7 }}>
-        Desliza para abrir el libro 📖
+        Desliza para abrir el libro
       </div>
 
     </div>
