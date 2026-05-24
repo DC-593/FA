@@ -1,30 +1,301 @@
-/* App.css */
-
-.page {
-  /* Fondo blanco por defecto OBLIGATORIO para que el canvas no sea transparente */
-  background-color: white; 
-  overflow: hidden;
-}
-
-/* Sombras realistas del centro del libro */
-.page.--left {
-  border-right: 0;
-  box-shadow: inset -7px 0 30px -7px rgba(0, 0, 0, 0.4) !important;
-}
-
-.page.--right {
-  border-left: 0;
-  box-shadow: inset 7px 0 30px -7px rgba(0, 0, 0, 0.4) !important;
-}
-
-/* El contenido interno de la página */
-.page-content {
-  width: 100%;
-  height: 100%;
+/* =============================================================
+   RESET Y BASE
+   ============================================================= */
+*, *::before, *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =============================================================
+   CONTENEDOR PRINCIPAL
+   ============================================================= */
+.app-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(145deg, #fdf2f8 0%, #fff7ed 50%, #faf5ff 100%);
+  gap: 24px;
+  padding: 20px;
+}
+
+/* =============================================================
+   ┌─────────────────────────────────────────────────────────┐
+   │  ARQUITECTURA ANTI-FANTASMA — El corazón de la solución │
+   └─────────────────────────────────────────────────────────┘
+
+   PROBLEMA:  react-pageflip clona el elemento raíz al canvas durante
+              la animación. Si ese elemento no tiene fondo sólido → fantasma.
+              Si tiene flex → la librería sobreescribe el layout.
+
+   SOLUCIÓN:  Dos capas con responsabilidades separadas:
+
+   Capa 1 (.page):
+     - Solo: position:relative + overflow:hidden
+     - El background-color viene en inline style (prop bgColor)
+     - La librería hace lo suyo con dimensiones y z-index
+     - NUNCA display:flex aquí
+
+   Capa 2 (.page-content):
+     - position:absolute + inset:0 → se ancla al padre ocupando
+       el 100% sin participar en el flujo que la librería controla
+     - Aquí vive todo tu flex, padding, tipografía, imágenes
+     - El canvas del padre YA tiene el color sólido capturado
+   ============================================================= */
+
+/* CAPA 1 — Root capturado por el canvas */
+.page {
+  position: relative;  /* Ancla el absolute del hijo */
+  overflow: hidden;    /* Recorta esquinas en animación */
+  /* background-color: set via inline style en el componente */
+}
+
+/* CAPA 2 — Tu lienzo de diseño, invisible para la librería */
+.page-content {
+  /* CLAVE: absolute + inset libera el flex del flujo del padre */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  /* Ahora flex funciona perfectamente aquí */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 32px 28px;
+  width: 100%;
+  height: 100%;
   text-align: center;
+}
+
+/* =============================================================
+   PORTADA DELANTERA — Naranja
+   ============================================================= */
+.page--cover-front .page-content,
+.page--cover-back .page-content {
+  padding: 40px 32px;
+}
+
+/* Decoraciones circulares de fondo */
+.cover-decoration {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.cover-decoration--top {
+  top: -60px;
+  right: -40px;
+}
+
+.cover-decoration--bottom {
+  bottom: -70px;
+  left: -50px;
+  width: 240px;
+  height: 240px;
+}
+
+.cover-title {
+  color: white;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-top: 14px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cover-divider {
+  width: 48px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  margin: 14px 0;
+}
+
+.cover-divider--white {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.cover-subtitle {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+.cover-date {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+
+/* =============================================================
+   CONTRAPORTADA — Morada
+   ============================================================= */
+.back-title {
+  color: white;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Solo el primer .back-title tiene margen superior */
+.back-title:first-of-type {
+  margin-top: 14px;
+}
+
+.back-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.92rem;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+.back-date {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+}
+
+/* =============================================================
+   PÁGINAS INTERNAS — Foto a sangre completa
+   ============================================================= */
+
+/*
+   Para imágenes a sangre, el img también necesita ser absoluto.
+   .page-content es el nuevo "contexto" de posicionamiento.
+*/
+.page-image-bleed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Caption flotante sobre la foto */
+.page-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%);
+  z-index: 1; /* Por encima de la imagen */
+}
+
+.page-caption p {
+  color: white;
+  font-size: 0.85rem;
+  font-style: italic;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  text-align: center;
+}
+
+/* =============================================================
+   PÁGINAS INTERNAS — Texto
+   ============================================================= */
+.inner-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 14px 0 12px;
+  line-height: 1.3;
+}
+
+.inner-title--purple {
+  color: #7c3aed;
+}
+
+.inner-body {
+  font-size: 0.92rem;
+  color: #6b7280;
+  line-height: 1.7;
+  max-width: 260px;
+}
+
+/* =============================================================
+   CONTROLES DE NAVEGACIÓN
+   ============================================================= */
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 10px 20px;
+  border-radius: 50px;
+  box-shadow:
+    0 4px 20px rgba(168, 85, 247, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a855f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background-color: rgba(168, 85, 247, 0.1);
+}
+
+.nav-btn:disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* Indicadores de puntos */
+.nav-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: #e5e7eb;
+  padding: 0;
+  transition: background-color 0.25s, transform 0.25s;
+}
+
+.nav-dot--active {
+  background: #a855f7;
+  transform: scale(1.3);
+}
+
+.nav-dot:hover:not(.nav-dot--active) {
+  background: #c4b5fd;
 }

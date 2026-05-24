@@ -1,116 +1,187 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
+import { Heart, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import './App.css';
 
-// COMPONENTE DE PÁGINA REESTRUCTURADO
-const Page = React.forwardRef((props, ref) => {
+// ─────────────────────────────────────────────────────────
+// COMPONENTE PAGE — Arquitectura de dos capas anti-fantasma
+// ─────────────────────────────────────────────────────────
+const Page = React.forwardRef(({ bgColor, density = 'soft', className = '', children }, ref) => {
   return (
-    // La etiqueta externa (ref) NO debe tener padding para no romper el PageFlip
-    <div className="page" ref={ref} style={{ backgroundColor: props.bgColor }}>
-      {/* El contenido interno sí puede tener padding y estilos libres */}
-      <div className="page-content" style={{ padding: '20px' }}>
-        {props.children}
+    /**
+     * CAPA 1 — Root (capturado por el canvas de react-pageflip)
+     * - Recibe el ref de la librería (NO mover)
+     * - Solo lleva: background-color (inline), position:relative y overflow:hidden
+     * - NUNCA pongas display:flex aquí → la librería lo sobrescribirá
+     */
+    <div
+      ref={ref}
+      className={`page ${className}`}
+      style={{ backgroundColor: bgColor }}
+      data-density={density}  // 'hard' para tapas duras, 'soft' para páginas internas
+    >
+      {/**
+       * CAPA 2 — Content (tu lienzo de diseño, libre de la librería)
+       * - position:absolute + inset:0 lo ancla al padre sin romper su fondo
+       * - Aquí vive TODO tu layout: flex, padding, tipografía, imágenes
+       */}
+      <div className="page-content">
+        {children}
       </div>
     </div>
   );
 });
 
-function App() {
-  const bookRef = useRef(); 
-  
-  const fotos = [
-    'frames/foto1.jpg', 
-    'frames/foto2.jpg',
-    'frames/foto3.jpg'
-  ];
+Page.displayName = 'Page';
 
-  const lanzarConfeti = () => {
-    confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, colors: ['#fb923c', '#a855f7', '#f472b6', '#ffffff'] });
+// ─────────────────────────────────────────────────────────
+// APP PRINCIPAL
+// ─────────────────────────────────────────────────────────
+function App() {
+  const bookRef = useRef();
+  const [currentPage, setCurrentPage] = useState(0);
+  const TOTAL_PAGES = 6; // Incluye portada y contraportada
+
+  const onFlip = (e) => {
+    setCurrentPage(e.data);
+
+    // Sorpresa de confeti al llegar a la contraportada (última página)
+    if (e.data >= TOTAL_PAGES - 1) {
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#fb923c', '#a855f7', '#f9a8d4', '#fde68a'],
+      });
+    }
   };
 
-  const nextButtonClick = () => bookRef.current.pageFlip().flipNext();
-  const prevButtonClick = () => bookRef.current.pageFlip().flipPrev();
-
   return (
-    <div style={{ 
-      display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh',
-      background: 'linear-gradient(135deg, #ffedd5 0%, #fdf2f8 50%, #f3e8ff 100%)',
-      fontFamily: 'sans-serif', padding: '20px'
-    }}>
-      
-      <div style={{ textAlign: 'center', marginBottom: '20px', color: '#a855f7' }}>
-        <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'normal', letterSpacing: '2px' }}>UN MES DE NOSOTROS</h2>
-        <h1 style={{ margin: '5px 0 0 0', fontSize: '2.5rem', color: '#fb923c', fontFamily: 'serif' }}>Historia de Amor ✨</h1>
-      </div>
+    <div className="app-container">
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        <button onClick={prevButtonClick} style={btnStyle}><ChevronLeft size={24} /></button>
+      <HTMLFlipBook
+        ref={bookRef}
+        width={340}
+        height={480}
+        size="fixed"
+        minWidth={280}
+        maxWidth={400}
+        minHeight={400}
+        maxHeight={560}
+        showCover={true}         // Activa el modo tapa dura para primera y última página
+        drawShadow={true}
+        flippingTime={750}
+        usePortrait={false}      // Modo libro (dos páginas visibles)
+        startZIndex={0}
+        maxShadowOpacity={0.4}
+        mobileScrollSupport={true}
+        onFlip={onFlip}
+        className="flipbook"
+      >
 
-        {/* CONTENEDOR CON POSITION RELATIVE PARA EVITAR QUE EL FANTASMA VUELE */}
-        <div style={{ position: 'relative', boxShadow: '0 25px 50px -12px rgba(168, 85, 247, 0.3)', borderRadius: '5px' }}>
-          
-          <HTMLFlipBook 
-            width={350} height={480} 
-            showCover={true}
-            ref={bookRef}
-            maxShadowOpacity={0.4}
-            usePortrait={true}
-          >
-            
-            {/* PORTADA - Color Mandarina */}
-            <Page bgColor="#fb923c">
-              <div style={{ border: '2px solid rgba(255,255,255,0.7)', padding: '50px 20px', borderRadius: '15px', width: '100%', boxSizing: 'border-box', position: 'relative' }}>
-                <Heart size={32} color="#f97316" fill="#f97316" style={{ position: 'absolute', top: '-15px', left: '-15px' }} />
-                <Heart size={32} color="#f97316" fill="#f97316" style={{ position: 'absolute', bottom: '-15px', right: '-15px' }} />
-                <h1 style={{ fontSize: '3.2rem', marginBottom: '5px', fontFamily: 'serif', color: 'white', margin: 0 }}>Mandarina</h1>
-                <div style={{ borderTop: '2px solid rgba(255,255,255,0.3)', margin: '15px 0' }}></div>
-                <div style={{ fontSize: '5rem', margin: '15px 0' }}>🍊</div>
-                <p style={{ fontSize: '1.4rem', letterSpacing: '1px', color: 'white', fontWeight: 'bold', margin: 0 }}>Para Miranda</p>
-                <Heart size={20} color="#f97316" fill="#f97316" style={{ display: 'inline', marginLeft: '5px' }} />
-              </div>
-            </Page>
+        {/* ── PORTADA (tapa dura naranja) ─────────────────── */}
+        <Page bgColor="#fb923c" density="hard" className="page--cover-front">
+          <div className="cover-decoration cover-decoration--top" />
+          <Heart size={52} color="white" fill="white" strokeWidth={1.5} />
+          <h1 className="cover-title">Mandarina</h1>
+          <div className="cover-divider" />
+          <p className="cover-subtitle">Para Miranda</p>
+          <p className="cover-date">🍊 Un mes juntos · Junio 2025</p>
+          <div className="cover-decoration cover-decoration--bottom" />
+        </Page>
 
-            {/* PÁGINAS INTERNAS - Color Papel */}
-            {fotos.map((ruta, index) => (
-              <Page key={index} bgColor="#fffafb">
-                <div style={{ width: '100%', height: '100%', border: '1px solid #fbcfe8', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <img src={ruta} alt={`Recuerdo ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = 'https://placehold.co/350x480/fdf2f8/ec4899?text=Tu+Foto+Aqui'; }} />
-                </div>
-              </Page>
-            ))}
+        {/* ── PÁGINA INTERIOR 1 (foto a sangre) ──────────── */}
+        <Page bgColor="#fffafb">
+          <img
+            src="/foto1.jpg"
+            alt="Nuestro primer recuerdo"
+            className="page-image-bleed"
+          />
+          <div className="page-caption">
+            <p>El principio de todo 🌸</p>
+          </div>
+        </Page>
 
-            {/* CONTRAPORTADA - Color Lavanda */}
-            <Page bgColor="#a855f7">
-              <div style={{ fontSize: '4rem', animation: 'pulse 2s infinite' }}>💜</div>
-              <h2 style={{ fontSize: '2rem', fontFamily: 'serif', margin: '20px 0', color: 'white' }}>¡Te quiero muchísimo!</h2>
-              <p style={{ marginBottom: '30px', fontSize: '1.1rem', color: 'white', opacity: 0.9 }}>Feliz primer mes, hermosa.</p>
-              <button onClick={lanzarConfeti} style={confetiBtnStyle} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-                Toca aquí ✨
-              </button>
-            </Page>
+        {/* ── PÁGINA INTERIOR 2 (texto + ícono) ──────────── */}
+        <Page bgColor="#fff7f0">
+          <Sparkles size={36} color="#fb923c" strokeWidth={1.5} />
+          <h2 className="inner-title">Un mes que vale por mil</h2>
+          <p className="inner-body">
+            Desde que apareciste, cada día tiene un poco más de color.
+            Gracias por ser tan tú.
+          </p>
+        </Page>
 
-          </HTMLFlipBook>
+        {/* ── PÁGINA INTERIOR 3 (foto a sangre) ──────────── */}
+        <Page bgColor="#fffafb">
+          <img
+            src="/foto2.jpg"
+            alt="Nuestra aventura"
+            className="page-image-bleed"
+          />
+          <div className="page-caption">
+            <p>Nuestra primera aventura ✨</p>
+          </div>
+        </Page>
+
+        {/* ── PÁGINA INTERIOR 4 (texto cierre) ───────────── */}
+        <Page bgColor="#fdf4ff">
+          <Heart size={36} color="#a855f7" fill="#a855f7" strokeWidth={1.5} />
+          <h2 className="inner-title inner-title--purple">Apenas empezamos</h2>
+          <p className="inner-body">
+            Hay infinitos momentos esperándonos. No puedo esperar a vivirlos todos contigo.
+          </p>
+        </Page>
+
+        {/* ── CONTRAPORTADA (tapa dura morada) ───────────── */}
+        <Page bgColor="#a855f7" density="hard" className="page--cover-back">
+          <div className="cover-decoration cover-decoration--top" />
+          <Heart size={52} color="white" fill="white" strokeWidth={1.5} />
+          <h2 className="back-title">Te quiero</h2>
+          <h2 className="back-title">muchísimo</h2>
+          <div className="cover-divider cover-divider--white" />
+          <p className="back-subtitle">— Con amor, siempre —</p>
+          <p className="back-date">💜 Miranda &amp; Yo</p>
+          <div className="cover-decoration cover-decoration--bottom" />
+        </Page>
+
+      </HTMLFlipBook>
+
+      {/* ── CONTROLES DE NAVEGACIÓN ─────────────────────── */}
+      <nav className="nav-controls" aria-label="Controles del libro">
+        <button
+          className="nav-btn"
+          onClick={() => bookRef.current?.pageFlip().flipPrev()}
+          disabled={currentPage === 0}
+          aria-label="Página anterior"
+        >
+          <ChevronLeft size={22} />
+        </button>
+
+        <div className="nav-dots">
+          {Array.from({ length: TOTAL_PAGES }).map((_, i) => (
+            <button
+              key={i}
+              className={`nav-dot ${i === currentPage ? 'nav-dot--active' : ''}`}
+              onClick={() => bookRef.current?.pageFlip().flip(i)}
+              aria-label={`Ir a página ${i + 1}`}
+            />
+          ))}
         </div>
 
-        <button onClick={nextButtonClick} style={btnStyle}><ChevronRight size={24} /></button>
+        <button
+          className="nav-btn"
+          onClick={() => bookRef.current?.pageFlip().flipNext()}
+          disabled={currentPage >= TOTAL_PAGES - 1}
+          aria-label="Página siguiente"
+        >
+          <ChevronRight size={22} />
+        </button>
+      </nav>
 
-      </div>
     </div>
   );
 }
-
-const btnStyle = {
-  backgroundColor: 'rgba(255, 255, 255, 0.7)', border: 'none', borderRadius: '50%',
-  width: '50px', height: '50px', display: 'flex', justifyContent: 'center', alignItems: 'center',
-  cursor: 'pointer', color: '#a855f7', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', transition: 'all 0.2s', flexShrink: 0
-};
-
-const confetiBtnStyle = {
-  padding: '12px 25px', fontSize: '1.1rem', backgroundColor: '#fb923c', color: 'white',
-  border: 'none', borderRadius: '30px', cursor: 'pointer', fontWeight: 'bold',
-  boxShadow: '0 4px 15px rgba(251, 146, 60, 0.4)', transition: 'transform 0.2s'
-};
 
 export default App;
